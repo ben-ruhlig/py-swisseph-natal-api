@@ -1,3 +1,25 @@
+"""
+Astrology API
+Copyright (C) 2025 Your Name
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This software incorporates the Swiss Ephemeris library.
+Copyright (C) 1997 - 2021 Astrodienst AG, Switzerland. All rights reserved.
+See https://www.astro.com/swisseph/ for details.
+"""
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import swisseph as swe
@@ -118,7 +140,7 @@ async def health_check():
             "message": "API is operational",
             "pyswisseph_version": swe.version,
             "timestamp": datetime.now(pytz.UTC).isoformat(),
-            "source": "https://github.com/yourusername/astro-api",  # AGPL compliance
+            "source": "https://github.com/ben-ruhlig/py-swisseph-natal-api",  # AGPL compliance
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
@@ -138,7 +160,8 @@ async def calculate_natal_chart(data: BirthData):
     try:
         # Parse date and time
         dt = datetime.strptime(f"{data.birth_date} {data.birth_time}", "%Y-%m-%d %H:%M")
-        dt = pytz.timezone("America/New_York").localize(dt)  # Adjust timezone
+        dt = pytz.timezone("America/New_York").localize(dt)
+        # Convert to UTC
         utc_dt = dt.astimezone(pytz.UTC)
 
         # Calculate Julian Day
