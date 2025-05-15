@@ -1,42 +1,7 @@
-# TODO
-- Add geocode functionality to lookup from the correct timezone (or make it a requirement to call this api w/UTC)
-- Test api endpoints (mostly natal)
+# Natal Chart Calculation API Documentation
 
-
-{
-  "utc_birth_datetime": "1991-10-08T14:06:00Z",
-  "birth_lat": 34.2257282,
-  "birth_lon": -77.9447107
-}
-
-
-cusps
-288.75561529918446, 1
-332.70551065447086, 2
-13.378664835476926, 3
-43.24209034066223, 4
-66.12343094909227, 5
-86.53049165539608, 6
-108.75561529918446, 7
-152.7055106544708, 8
-193.3786648354769, 9
-223.24209034066226, 10
-246.12343094909227, 11
-266.5304916553961 12
-
-
-ascmc
-288.75561529918446 1
-223.24209034066226 2
-220.78919900183266 3
-144.50427527253285 4
-308.36699434989305 5
-321.1998364120339 6
-280.2669986532352 7
-141.199836412033 8
-
-
-## Test Example
+## Example workflow from the Caller
+The caller will need to obtain geocoordinates. Let's take these coordinates as an example.
 
 **Request**
 `curl "https://nominatim.openstreetmap.org/search?q=Wilmington,+North+Carolina,+USA&format=json"`
@@ -63,12 +28,37 @@ ascmc
 ]%
 ```
 
-Google would have been `curl "https://maps.googleapis.com/maps/api/geocode/json?address=Wilmington,+North+Carolina,+USA&key=YOUR_API_KEY"`
+Google api would have been `curl "https://maps.googleapis.com/maps/api/geocode/json?address=Wilmington,+North+Carolina,+USA&key=YOUR_API_KEY"`
 
 
-### SwissEph Response
+## Application Endpoint
+
+`POST /natal-chart`
+
+---
+
+## Request Body
+Note that house_systems can be specified as a comma delimited list placidus,koch,etc. If not query is provided, default is placidus.
+```
+/natal-chart?house_systems=placidus%2Ckoch
+```
 
 ```json
+{
+  "utc_birth_datetime": "1991-10-08T14:06:00Z",
+  "birth_lat": 34.2257282,
+  "birth_lon": -77.9447107
+}
+```
+- `utc_birth_datetime`: ISO 8601 UTC datetime string (e.g., "2025-05-15T04:06:36Z")
+- `birth_lat`: Latitude in decimal degrees (positive for N, negative for S)
+- `birth_lon`: Longitude in decimal degrees (positive for E, negative for W)
+
+---
+
+## Response Body
+
+```
 {
   "systems": {
     "placidus": {
@@ -410,3 +400,69 @@ Google would have been `curl "https://maps.googleapis.com/maps/api/geocode/json?
   }
 }
 ```
+
+---
+
+## Calculation Details & Assumptions
+
+- **Time**: The API expects UTC time in ISO 8601 format. No timezone conversion is performed.
+- **Location**: Latitude and longitude must be provided as decimal degrees. No geocoding is performed.
+- **Ephemeris**: Swiss Ephemeris (pyswisseph) is used for all astronomical calculations. The ephemeris file must be present in the `./ephe/` directory.
+- **Julian Day**: The UTC datetime is converted to Julian Day for all calculations.
+- **House System**: Placidus house system is default if none is explicitely provided.
+- **Planets**: The 10 classical planets are calculated: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.
+- **Planet Data**: Each planet includes its name, sign, degree within sign, house, and speed (degrees/day; negative means retrograde).
+- **Houses**: Each house includes the sign and degree of its cusp (start) and the house number (1-12).
+- **Aspects**: All major aspects are calculated between planet pairs:
+    - Conjunction (0° ±8°), Opposition (180° ±8°), Trine (120° ±7°), Square (90° ±7°), Sextile (60° ±6°), Quincunx (150° ±5°), Semi-sextile (30° ±3°), Semi-square (45° ±3°), Sesquiquadrate (135° ±3°), Quintile (72° ±2°), Bi-quintile (144° ±2°)
+    - Each aspect includes the type, the two planets, the exact angle, and the orb (difference from exact).
+- **Aspect Calculation**: For each unique planet pair, the shortest angle between them is compared to all aspect angles. If within orb, the aspect is included.
+- **Error Handling**: Invalid input or calculation errors return HTTP 400/500 with details.
+
+---
+
+## Astrological Concepts Explained
+
+### Planets
+- Represent core energies, drives, and archetypes in the chart.
+- Example: Sun (identity), Moon (emotions), Mercury (mind), Venus (love), Mars (action), etc.
+
+### Zodiac Signs
+- The 12 signs (Aries, Taurus, ..., Pisces) represent modes of expression for planets and houses.
+- Each sign covers 30° of the 360° zodiac.
+
+### Houses
+- The sky is divided into 12 houses, each representing a life area (e.g., self, money, communication, home, etc.).
+- The house a planet falls in shows where its energy is most active.
+- House cusps are the starting points of each house, calculated using the Placidus system.
+
+### Aspects
+- Aspects are angular relationships between planets, showing how their energies interact.
+- Major aspects:
+    - **Conjunction (0°)**: Planets act together, blending energies.
+    - **Opposition (180°)**: Tension, polarity, or balance between planets.
+    - **Trine (120°)**: Harmony, ease, talents.
+    - **Square (90°)**: Challenge, friction, dynamic growth.
+    - **Sextile (60°)**: Opportunity, cooperation.
+    - **Quincunx (150°)**: Adjustment, awkwardness.
+    - **Semi-sextile (30°)**: Subtle connection.
+    - **Semi-square (45°)**: Minor tension.
+    - **Sesquiquadrate (135°)**: Minor challenge.
+    - **Quintile (72°), Bi-quintile (144°)**: Creative or unique connections.
+- Each aspect is defined by its angle and an allowable "orb" (tolerance).
+
+### Example Calculation Flow
+1. Parse UTC datetime and coordinates from request.
+2. Convert datetime to Julian Day.
+3. Calculate house cusps using Placidus system.
+4. Calculate planet positions (longitude, sign, degree, house, speed).
+5. Calculate all aspects between planet pairs.
+6. Return planets, houses, and aspects in the response.
+
+---
+
+## Notes
+- The API does not perform geocoding or timezone conversion; all data must be provided in the correct format.
+- Only the 10 classical planets are included; asteroids and other points are not calculated.
+- The Placidus house system is standard for Western astrology, but other systems are not currently supported.
+- The orb values for aspects are based on common astrological practice but can be adjusted in the code if needed.

@@ -41,51 +41,7 @@ A FastAPI-based Python API for calculating natal charts using the Swiss Ephemeri
 `POST /natal-chart`
 
 * Description: Calculates a natal chart based on birth details.
-* **Request Body:**
-```json
-{
-  "birth_date": "1995-08-23",
-  "birth_time": "14:30",
-  "birth_place": "New York, NY"
-}
-```
-
-* **Response:**
-```json
-{
-  "planets": [
-    {
-      "planet": "Sun",
-      "sign": "Virgo",
-      "degree": 0.5,
-      "house": 10
-    },
-    ...
-  ],
-  "houses": [
-    {
-      "sign": "Aries",
-      "degree": 12.1,
-      "house": 1
-    },
-    ...
-  ],
-  "aspects": [
-    {
-      "type": "square",
-      "planets": ["Moon", "Saturn"]
-    },
-    ...
-  ]
-}
-```
-
-
-* **Notes**:
-    * Currently uses hardcoded coordinates for New York, NY (40.7128, -74.0060). Geocoding support can be added with geopy.
-    * Time zone is hardcoded to America/New_York. Enhance with a time zone database for production.
-
-
+* See [docs/natal-chart-calc.md](docs/natal-chart-calc.md) for full request/response specification and calculation details.
 
 ## Ephemeris Files
 This API includes only the `seas_18.se1` ephemeris file, which covers planetary positions from 1800 to 2400. This is sufficient for natal charts of living humans, as it spans modern birth dates. The file is stored in the `./ephe/` directory and must be downloaded separately (see Setup).
