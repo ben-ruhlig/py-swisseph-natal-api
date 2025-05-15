@@ -1,4 +1,8 @@
 # Astrology API
+
+> **!IMPORTANT: Not Production Ready**. 
+> This application is in active development.
+
 A FastAPI-based Python API for calculating natal charts using the Swiss Ephemeris via pyswisseph. This API is designed to compute astrological data (planetary positions, house cusps, and aspects) for living humans, using the seas_18.se1 ephemeris file covering years 1800–2400.
 
 ## Features
