@@ -3,11 +3,32 @@ from pydantic import BaseModel
 import swisseph as swe
 from datetime import datetime
 import pytz
+import os
 
 app = FastAPI()
 
-# Set ephemeris path (adjust to your ephemeris directory)
-swe.set_ephe_path("./ephe")
+# Set ephemeris path
+EPHE_PATH = "./app/ephe"
+try:
+    swe.set_ephe_path(EPHE_PATH)
+except Exception as e:
+    raise RuntimeError(f"Failed to set ephemeris path {EPHE_PATH}: {str(e)}")
+
+# Define zodiac signs
+SIGNS = [
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+]
 
 
 class BirthData(BaseModel):
@@ -41,21 +62,7 @@ class NatalChart(BaseModel):
 
 
 def zodiac_sign(degree: float) -> str:
-    signs = [
-        "Aries",
-        "Taurus",
-        "Gemini",
-        "Cancer",
-        "Leo",
-        "Virgo",
-        "Libra",
-        "Scorpio",
-        "Sagittarius",
-        "Capricorn",
-        "Aquarius",
-        "Pisces",
-    ]
-    return signs[int(degree // 30)]
+    return SIGNS[int(degree // 30)]
 
 
 def house_number(degree: float, cusps: list[float]) -> int:
@@ -85,15 +92,45 @@ def calculate_aspects(planets: list[Planet]) -> list[Aspect]:
     aspects = []
     for i, p1 in enumerate(planets):
         for p2 in planets[i + 1 :]:
-            angle = abs(
-                (p1.degree + signs.index(p1.sign) * 30)
-                - (p2.degree + signs.index(p2.sign) * 30)
-            )
-            if angle > 180:
-                angle = 360 - angle
+            lon1 = p1.degree + SIGNS.index(p1.sign) * 30
+            lon2 = p2.degree + SIGNS.index(p2.sign) * 30
+            angle = abs(lon1 - lon2)
+            angle = min(angle, 360 - angle)
             if abs(angle - 90) < 5:  # Square aspect with 5-degree orb
                 aspects.append(Aspect(type="square", planets=[p1.planet, p2.planet]))
     return aspects
+
+
+@app.get("/health")
+async def health_check():
+    try:
+        # Verify pyswisseph is operational with a simple Julian Day calculation
+        test_jd = swe.julday(2025, 5, 15, 13.9)  # Today, ~01:54 PM +08
+        if test_jd < 0:
+            raise Exception("Julian Day calculation failed")
+
+        # Verify ephemeris path
+        if not os.path.exists(EPHE_PATH):
+            raise Exception(f"Ephemeris path {EPHE_PATH} does not exist")
+
+        return {
+            "status": "healthy",
+            "message": "API is operational",
+            "pyswisseph_version": swe.version,
+            "timestamp": datetime.now(pytz.UTC).isoformat(),
+            "source": "https://github.com/yourusername/astro-api",  # AGPL compliance
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+
+
+@app.get("/docs")
+async def docs():
+    return {
+        "message": "Astrology API using pyswisseph",
+        "source": "https://github.com/yourusername/astro-api",
+        "license": "AGPL-3.0",
+    }
 
 
 @app.post("/natal-chart", response_model=NatalChart)

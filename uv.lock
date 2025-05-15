@@ -91,7 +91,7 @@ wheels = [
 ]
 
 [[package]]
-name = "py-swisseph-api"
+name = "py-swisseph-natal-api"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

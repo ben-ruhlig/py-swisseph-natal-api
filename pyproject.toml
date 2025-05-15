@@ -1,7 +1,7 @@
 [project]
-name = "py-swisseph-api"
+name = "py-swisseph-natal-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "An AGPL compliant open source natal api powered by pyswisseph"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
