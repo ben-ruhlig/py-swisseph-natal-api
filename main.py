@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 # Set ephemeris path
-EPHE_PATH = "./app/ephe"
+EPHE_PATH = "./ephe"
 try:
     swe.set_ephe_path(EPHE_PATH)
 except Exception as e:
