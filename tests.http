@@ -1,0 +1,100 @@
+# Astrology API Tests
+# This file contains REST Client tests for testing the Astrology API
+# These tests use the VSCode REST Client extension by Huachao Mao
+
+@baseUrl = http://localhost:8000
+
+### Health Check Endpoint
+# Verify that the API is operational and connected to Swiss Ephemeris
+GET {{baseUrl}}/health HTTP/1.1
+
+### Documentation Endpoint
+# Get API documentation and license information
+GET {{baseUrl}}/docs HTTP/1.1
+
+### Calculate Natal Chart (Placidus)
+# Request a natal chart calculation with default Placidus house system
+POST {{baseUrl}}/natal-chart HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "1990-06-15T12:30:00Z",
+  "birth_lat": 40.7128,
+  "birth_lon": -74.0060
+}
+
+### Calculate Natal Chart with Multiple House Systems
+# Request a natal chart calculation with multiple house systems
+POST {{baseUrl}}/natal-chart?house_systems=placidus,koch,whole_sign HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "1990-06-15T12:30:00Z",
+  "birth_lat": 40.7128,
+  "birth_lon": -74.0060
+}
+
+### Calculate Natal Chart for Current Time
+# Calculate a chart for the current date/time in New York
+POST {{baseUrl}}/natal-chart HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "2025-05-18T16:30:00Z",
+  "birth_lat": 40.7128,
+  "birth_lon": -74.0060
+}
+
+### Error Test - Invalid Date Format
+# Test error handling with invalid date format
+POST {{baseUrl}}/natal-chart HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "invalid-date",
+  "birth_lat": 40.7128,
+  "birth_lon": -74.0060
+}
+
+### Error Test - Missing Required Field
+# Test error handling with missing birth_lat field
+POST {{baseUrl}}/natal-chart HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "1990-06-15T12:30:00Z",
+  "birth_lon": -74.0060
+}
+
+### Error Test - Invalid House System
+# Test with an invalid house system parameter
+POST {{baseUrl}}/natal-chart?house_systems=invalid HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "1990-06-15T12:30:00Z",
+  "birth_lat": 40.7128,
+  "birth_lon": -74.0060
+}
+
+### Calculate Chart for Different Location (Tokyo)
+# Test calculating a chart for Tokyo
+POST {{baseUrl}}/natal-chart HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "1990-06-15T12:30:00Z", 
+  "birth_lat": 35.6762,
+  "birth_lon": 139.6503
+}
+
+### Calculate Chart for Southern Hemisphere (Sydney)
+# Test calculating a chart for Sydney
+POST {{baseUrl}}/natal-chart HTTP/1.1
+Content-Type: application/json
+
+{
+  "utc_birth_datetime": "1990-06-15T12:30:00Z",
+  "birth_lat": -33.8688,
+  "birth_lon": 151.2093
+}
