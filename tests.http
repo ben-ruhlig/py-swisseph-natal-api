@@ -18,9 +18,9 @@ POST {{baseUrl}}/natal-chart HTTP/1.1
 Content-Type: application/json
 
 {
-  "utc_birth_datetime": "1990-06-15T12:30:00Z",
-  "birth_lat": 40.7128,
-  "birth_lon": -74.0060
+  "utc_birth_datetime": "1991-10-08T11:15:00Z",
+  "birth_lat": 34.2333,
+  "birth_lon": -77.9500
 }
 
 ### Calculate Natal Chart with Multiple House Systems
